@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Firebase Chat - Ločena prijava in registracija</title>
+  <style>
+    /* Enak stil kot prej */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #667eea, #764ba2);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 400px;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    .card h2 {
+      margin-bottom: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #667eea;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      justify-content: center;
+    }
+    button {
+      flex: 1;
+      padding: 10px;
+      background-color: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #5a67d8;
+    }
+    .logout {
+      background-color: #e63946;
+    }
+    .logout:hover {
+      background-color: #c03238;
+    }
+    #chat-box {
+      border: 1px solid #e0e0e0;
+      height: 300px;
+      overflow-y: auto;
+      padding: 12px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      font-size: 14px;
+      text-align: left;
+      color: #333;
+    }
+    #chat-box div {
+      background-color: #e3e8ff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .hidden {
+      display: none;
+    }
+    .error-msg {
+      color: red;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+    .link-btn {
+      background: none;
+      border: none;
+      color: #667eea;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Prijava -->
+    <div id="login-container" class="card">
+      <h2>Prijava</h2>
+      <input type="email" id="login-email" placeholder="Email" />
+      <input type="password" id="login-password" placeholder="Geslo" />
+      <button onclick="login()">Prijava</button>
+      <p id="login-error" class="error-msg"></p>
+      <button class="link-btn" onclick="showRegister()">Nisi registriran? Registriraj se tukaj</button>
+    </div>
+
+    <!-- Registracija -->
+    <div id="register-container" class="card hidden">
+      <h2>Registracija</h2>
+      <input type="text" id="register-username" placeholder="Uporabniško ime" />
+      <input type="email" id="register-email" placeholder="Email" />
+      <input type="password" id="register-password" placeholder="Geslo (vsaj 6 znakov)" />
+      <button onclick="register()">Registracija</button>
+      <p id="register-error" class="error-msg"></p>
+      <button class="link-btn" onclick="showLogin()">Že imaš račun? Prijavi se tukaj</button>
+    </div>
+
+    <!-- Chat -->
+    <div id="chat-container" class="card hidden">
+      <div id="chat-box"></div>
+      <input type="text" id="message" placeholder="Napiši sporočilo..." />
+      <button onclick="sendMessage()">Pošlji</button>
+      <button class="logout" onclick="logout()">Odjava</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+import {
+  getDatabase,
+  ref,
+  push,
+  onChildAdded,
+  off,
+  remove
+} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-analytics.js";
+
+// Firebase konfiguracija
+const firebaseConfig = {
+  apiKey: "AIzaSyDi0cyCHR3zKZVRvcr9HAysD2hMxrveaPE",
+  authDomain: "chat-server-6a818.firebaseapp.com",
+  projectId: "chat-server-6a818",
+  storageBucket: "chat-server-6a818.appspot.com",
+  messagingSenderId: "26169957151",
+  appId: "1:26169957151:web:78adf687a38d764732ae2a",
+  measurementId: "G-6VHMVY0WDS"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const analytics = getAnalytics(app);
+
+// DOM elementi
+const loginContainer = document.getElementById("login-container");
+const registerContainer = document.getElementById("register-container");
+const chatContainer = document.getElementById("chat-container");
+const chatBox = document.getElementById("chat-box");
+const loginError = document.getElementById("login-error");
+const registerError = document.getElementById("register-error");
+
+// Preklapljanje pogledov
+window.showRegister = function () {
+  loginContainer.classList.add("hidden");
+  registerContainer.classList.remove("hidden");
+  loginError.textContent = "";
+  registerError.textContent = "";
+};
+
+window.showLogin = function () {
+  registerContainer.classList.add("hidden");
+  loginContainer.classList.remove("hidden");
+  loginError.textContent = "";
+  registerError.textContent = "";
+};
+
+// Prijava
+window.login = function () {
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value.trim();
+  loginError.textContent = "";
+
+  if (!email || !password) {
+    loginError.textContent = "Vnesi email in geslo.";
+    return;
+  }
+
+  signInWithEmailAndPassword(auth, email, password)
+    .catch(err => loginError.textContent = err.message);
+};
+
+// Registracija
+window.register = async function () {
+  const email = document.getElementById("register-email").value.trim();
+  const password = document.getElementById("register-password").value.trim();
+  const username = document.getElementById("register-username").value.trim();
+  registerError.textContent = "";
+
+  if (!email || !password || password.length < 6 || !username) {
+    registerError.textContent = "Prosimo, vnesi email, geslo (vsaj 6 znakov) in uporabniško ime.";
+    return;
+  }
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(userCredential.user, { displayName: username });
+    registerError.textContent = "";
+  } catch (err) {
+    registerError.textContent = err.message;
+  }
+};
+
+// Odjava
+window.logout = function () {
+  signOut(auth);
+};
+
+// Pošlji sporočilo + clearchat
+window.sendMessage = function () {
+  const message = document.getElementById("message").value.trim();
+  const user = auth.currentUser;
+  if (!message || !user) return;
+
+  const username = user.displayName || user.email.split("@")[0];
+
+  // Ukaz /clearchat samo za dajvic
+  if (message === "/clearchat" && username.toLowerCase() === "dajvic") {
+    clearChat();
+    document.getElementById("message").value = "";
+    return;
+  }
+
+  push(ref(db, "messages"), {
+    username,
+    message,
+    timestamp: Date.now()
+  });
+
+  document.getElementById("message").value = "";
+};
+
+// Funkcija za brisanje klepeta
+window.clearChat = function () {
+  const messagesRef = ref(db, "messages");
+  remove(messagesRef)
+    .then(() => {
+      chatBox.innerHTML = "";
+      const msg = document.createElement("div");
+      msg.textContent = "🔒 Klepet je bil izbrisan.";
+      msg.style.fontStyle = "italic";
+      msg.style.color = "#888";
+      chatBox.appendChild(msg);
+    })
+    .catch(err => {
+      const errDiv = document.createElement("div");
+      errDiv.textContent = `Napaka: ${err.message}`;
+      errDiv.style.color = "red";
+      chatBox.appendChild(errDiv);
+    });
+};
+
+// Spremljanje prijave
+onAuthStateChanged(auth, user => {
+  if (user) {
+    loginContainer.classList.add("hidden");
+    registerContainer.classList.add("hidden");
+    chatContainer.classList.remove("hidden");
+    loginError.textContent = "";
+    registerError.textContent = "";
+    listenForMessages();
+  } else {
+    chatContainer.classList.add("hidden");
+    showLogin();
+    chatBox.innerHTML = "";
+  }
+});
+
+// Poslušaj nova sporočila
+function listenForMessages() {
+  const messagesRef = ref(db, "messages");
+  off(messagesRef);
+
+  onChildAdded(messagesRef, snapshot => {
+    const data = snapshot.val();
+    const msgDiv = document.createElement("div");
+
+    // Označi dajvic kot owner
+    let displayName = data.username;
+    if (displayName.toLowerCase() === "dajvic") {
+      displayName += " 👑 (owner)";
+      msgDiv.style.fontWeight = "bold";
+      msgDiv.style.color = "#d97706";
+    }
+
+    msgDiv.textContent = `${displayName}: ${data.message}`;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+}
+
+
+  </script>
+</body>
+</html>
