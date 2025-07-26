@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ROYALMC Chat</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background: #000;
+      padding: 15px;
+      text-align: center;
+      font-size: 24px;
+      color: #ffa500;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    #tabs {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid #ffa500;
+      font-weight: bold;
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 20px;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px;
+      background: #ffa500;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ff8c00;
+    }
+
+    #chatContainer {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
+
+    #chatBox {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      background: #1c1c1c;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+
+    .self {
+      background: #ffa500;
+      color: black;
+      align-self: flex-end;
+    }
+
+    #inputArea {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px;
+      background: #000;
+    }
+
+    #msgInput {
+      flex: 1 1 auto;
+      min-width: 100px;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    #logoutBtn {
+      padding: 10px;
+      background: #444;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      margin: 10px;
+      align-self: flex-end;
+    }
+
+    @media (max-width: 600px) {
+      #inputArea {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      #msgInput {
+        width: 100%;
+        font-size: 18px;
+      }
+
+      .message {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>ROYALMC - Globalni Chat</header>
+
+  <div id="authForm">
+    <div id="tabs">
+      <div class="tab active" onclick="showTab('login')">Prijava</div>
+      <div class="tab" onclick="showTab('register')">Registracija</div>
+    </div>
+
+    <div id="login" class="tab-content active">
+      <input type="email" id="loginEmail" placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Geslo" />
+      <button onclick="login()">Prijavi se</button>
+    </div>
+
+    <div id="register" class="tab-content">
+      <input type="text" id="registerName" placeholder="Uporabniško ime" />
+      <input type="email" id="registerEmail" placeholder="Email" />
+      <input type="password" id="registerPassword" placeholder="Geslo" />
+      <button onclick="register()">Registriraj se</button>
+    </div>
+  </div>
+
+  <div id="chatContainer">
+    <button id="logoutBtn" onclick="logout()">Odjava</button>
+    <div id="chatBox"></div>
+    <div id="inputArea">
+      <input type="text" id="msgInput" placeholder="Sporočilo..." />
+      <button onclick="sendMessage()">Pošlji</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-database-compat.js"></script>
+  <script>
+    // Firebase konfiguracija
+    const firebaseConfig = {
+      apiKey: "AIzaSyCrWlh-bAMnGDArat5gx82zImuw81qaWBc",
+      authDomain: "royalmc-chat.firebaseapp.com",
+      databaseURL: "https://royalmc-chat-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "royalmc-chat",
+      storageBucket: "royalmc-chat.appspot.com",
+      messagingSenderId: "524319784882",
+      appId: "1:524319784882:web:1c850c78cbeeffb2e3f317"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
+    }
+
+    function register() {
+      const name = document.getElementById("registerName").value.trim();
+      const email = document.getElementById("registerEmail").value.trim();
+      const password = document.getElementById("registerPassword").value.trim();
+      if (!name || !email || !password) return alert("Izpolni vsa polja!");
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(userCred => {
+          return userCred.user.updateProfile({ displayName: name });
+        })
+        .catch(err => alert("Napaka pri registraciji: " + err.message));
+    }
+
+    function login() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(err => alert("Napaka pri prijavi: " + err.message));
+    }
+
+    function logout() {
+      auth.signOut();
+    }
+
+    function sendMessage() {
+      const user = auth.currentUser;
+      const text = document.getElementById("msgInput").value.trim();
+      if (!text) return;
+
+      if (text === "/clearchat" && user.displayName.toLowerCase() === "dajvic") {
+        if (confirm("Izbrisati vsa sporočila?")) {
+          db.ref("messages").remove();
+          document.getElementById("chatBox").innerHTML = "";
+          alert("Chat izbrisan.");
+        }
+        document.getElementById("msgInput").value = "";
+        return;
+      }
+
+      db.ref("messages").push({
+        user: user.displayName,
+        text: text,
+        timestamp: Date.now()
+      });
+      document.getElementById("msgInput").value = "";
+    }
+
+    function addMessage(user, text) {
+      const div = document.createElement("div");
+      div.className = "message";
+      if (auth.currentUser && user === auth.currentUser.displayName) {
+        div.classList.add("self");
+      }
+
+      let displayName = `<span style="color:#ffa500;">${user}</span>`;
+      if (user.toLowerCase() === "dajvic") {
+        displayName = `<span style="color:#ff4444; font-weight:bold;">[OWNER]</span> <span style="color:#ff8888;">${user}</span>`;
+      }
+
+      div.innerHTML = `${displayName}: ${text}`;
+      document.getElementById("chatBox").appendChild(div);
+      document.getElementById("chatBox").scrollTop = document.getElementById("chatBox").scrollHeight;
+    }
+
+    function listenForMessages() {
+      db.ref("messages").off();
+      db.ref("messages").on("child_added", snap => {
+        const msg = snap.val();
+        addMessage(msg.user, msg.text);
+      });
+      db.ref("messages").on("child_removed", () => {
+        document.getElementById("chatBox").innerHTML = "";
+      });
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("authForm").style.display = "none";
+        document.getElementById("chatContainer").style.display = "flex";
+        listenForMessages();
+      } else {
+        document.getElementById("authForm").style.display = "block";
+        document.getElementById("chatContainer").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
