@@ -1,0 +1,214 @@
+/* Reset in osnovni stil */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #2f3136;
+  color: #dcddde;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.wrapper {
+  width: 100%;
+  max-width: 480px;
+  background-color: #36393f;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* Kartice za login/registracijo/chat */
+.card {
+  padding: 30px 25px;
+  text-align: center;
+}
+.hidden {
+  display: none;
+}
+/* Naslovi */
+h2 {
+  margin: 0 0 18px;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: #fff;
+  user-select: none;
+}
+/* Input polja */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  width: 100%;
+  background-color: #202225;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 15px;
+  color: #dcddde;
+  font-size: 15px;
+  margin-bottom: 15px;
+  resize: none;
+  transition: background-color 0.2s;
+}
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  background-color: #2a2c30;
+  outline: none;
+}
+/* Gumbi */
+button {
+  cursor: pointer;
+  border-radius: 6px;
+  border: none;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px;
+  background-color: #5865f2;
+  color: white;
+  transition: background-color 0.3s;
+  user-select: none;
+  width: 100%;
+}
+button:hover {
+  background-color: #4752c4;
+}
+button.logout {
+  background-color: #ed4245;
+  margin-top: 10px;
+}
+button.logout:hover {
+  background-color: #b93a3f;
+}
+/* Link gumb kot tekst */
+.link-btn {
+  background: none;
+  border: none;
+  color: #7289da;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+  margin-top: 12px;
+  user-select: none;
+}
+.link-btn:hover {
+  color: #99aab5;
+}
+/* Error sporočila */
+.error-msg {
+  color: #ed4245;
+  font-size: 13px;
+  margin-bottom: 12px;
+  min-height: 18px;
+  user-select: none;
+}
+/* Chat container */
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  padding: 20px 20px 15px;
+}
+#chat-box {
+  flex: 1;
+  background-color: #2f3136;
+  border-radius: 8px;
+  padding: 15px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  user-select: text;
+  scrollbar-width: thin;
+  scrollbar-color: #202225 #2f3136;
+}
+/* Scrollbar za Chrome/Edge/Safari */
+#chat-box::-webkit-scrollbar {
+  width: 8px;
+}
+#chat-box::-webkit-scrollbar-track {
+  background: #2f3136;
+  border-radius: 8px;
+}
+#chat-box::-webkit-scrollbar-thumb {
+  background-color: #202225;
+  border-radius: 8px;
+}
+/* Sporočilni mehurčki */
+.message {
+  max-width: 80%;
+  background-color: #40444b;
+  border-radius: 12px 12px 12px 4px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  position: relative;
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.4;
+}
+/* Lastnik sporočilo */
+.owner {
+  background-color: #faa61a;
+  color: #2c2d30;
+  font-weight: 600;
+  border-radius: 12px 12px 4px 12px;
+}
+/* Ime in timestamp */
+.message-header {
+  font-weight: 600;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #b9bbbe;
+  font-size: 12px;
+  user-select: text;
+}
+.owner .message-header {
+  color: #2c2d30;
+}
+.owner .owner-tag {
+  background-color: #2c2d30;
+  color: #faa61a;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  user-select: none;
+}
+/* Timestamp */
+.timestamp {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 10px;
+  color: #72767d;
+  user-select: none;
+}
+/* Vnosno polje za sporočilo */
+#message {
+  width: 100%;
+  background-color: #40444b;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 15px;
+  color: #dcddde;
+  font-size: 15px;
+  resize: none;
+  height: 60px;
+  line-height: 1.3;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 10px;
+  transition: background-color 0.2s;
+}
+#message:focus {
+  background-color: #4e5057;
+}
+/* Skrij celoten UI med nalaganjem */
+body.loading .wrapper {
+  display: none;
+}
+
