@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prijatelji</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right, #e3f2fd, #fce4ec);
+      color: #333;
+    }
+
+    .wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 3rem 1rem;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+      max-width: 700px;
+      width: 100%;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2, h3 {
+      margin-top: 1.5rem;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 0.5rem;
+      color: #1e88e5;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+
+    .btn {
+      margin-top: 1rem;
+      display: inline-block;
+      padding: 0.6rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      background-color: #1e88e5;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    .btn:hover {
+      background-color: #1565c0;
+    }
+
+    .btn.red {
+      background-color: #e53935;
+    }
+
+    .btn.red:hover {
+      background-color: #c62828;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+
+    li {
+      background-color: #f5f5f5;
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    li span {
+      font-weight: 500;
+      font-size: 1rem;
+      flex: 1;
+    }
+
+    .info {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    .link-btn {
+      margin-top: 2rem;
+      display: block;
+      text-align: center;
+      background-color: #555;
+      color: white;
+      padding: 0.7rem;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .link-btn:hover {
+      background-color: #333;
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 1.5rem;
+      }
+
+      li {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      li button {
+        width: 100%;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="loading">
+  <div class="wrapper">
+    <div class="card">
+      <h2>Dodaj prijatelje</h2>
+      <input type="text" id="search-input" placeholder="Vpiši uporabniško ime..." />
+      <button class="btn" onclick="searchUsers()">🔍 Išči uporabnike</button>
+      <div id="search-info" class="info"></div>
+      <ul id="search-results"></ul>
+
+      <h3>Prošnje za prijateljstvo</h3>
+      <ul id="friend-requests"></ul>
+
+      <h3>Moji prijatelji</h3>
+      <ul id="friend-list"></ul>
+
+      <a class="link-btn" href="chat.html">⬅ Nazaj na klepet</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      onValue,
+      remove,
+      update
+    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDi0cyCHR3zKZVRvcr9HAysD2hMxrveaPE",
+      authDomain: "chat-server-6a818.firebaseapp.com",
+      databaseURL: "https://chat-server-6a818-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "chat-server-6a818",
+      storageBucket: "chat-server-6a818.appspot.com",
+      messagingSenderId: "26169957151",
+      appId: "1:26169957151:web:78adf687a38d764732ae2a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const searchInput = document.getElementById("search-input");
+    const searchResults = document.getElementById("search-results");
+    const searchInfo = document.getElementById("search-info");
+    const friendRequests = document.getElementById("friend-requests");
+    const friendList = document.getElementById("friend-list");
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        location.href = "index.html";
+        return;
+      }
+
+      currentUser = user;
+      document.body.classList.remove("loading");
+
+      loadFriendRequests();
+      loadFriends();
+    });
+
+    window.searchUsers = async function () {
+      const term = searchInput.value.trim().toLowerCase();
+      searchResults.innerHTML = "";
+      searchInfo.textContent = "";
+
+      if (!term) {
+        searchInfo.textContent = "⚠️ Vnesi uporabniško ime.";
+        return;
+      }
+
+      try {
+        const snapshot = await get(ref(db, "users"));
+        const users = snapshot.val();
+        let count = 0;
+
+        for (const uid in users) {
+          const u = users[uid];
+          if (uid !== currentUser.uid && u.username.toLowerCase().includes(term)) {
+            const li = document.createElement("li");
+            li.innerHTML = `<span>${u.username}</span>`;
+            const btn = document.createElement("button");
+            btn.classList.add("btn");
+            btn.textContent = "➕ Pošlji prošnjo";
+            btn.onclick = () => sendRequest(uid, u.username);
+            li.appendChild(btn);
+            searchResults.appendChild(li);
+            count++;
+          }
+        }
+
+        if (count === 0) {
+          searchResults.innerHTML = "<li>🔍 Ni najdenih uporabnikov.</li>";
+        }
+
+        searchInfo.textContent = `Najdeno: ${count}`;
+      } catch (error) {
+        searchInfo.textContent = "❌ Napaka pri iskanju uporabnikov.";
+        console.error(error);
+      }
+    };
+
+    async function sendRequest(toUid, username) {
+      const myUid = currentUser.uid;
+      await set(ref(db, `friend_requests/${toUid}/${myUid}`), true);
+      alert(`✅ Prošnja poslana uporabniku ${username}`);
+    }
+
+    function loadFriendRequests() {
+      const myUid = currentUser.uid;
+      onValue(ref(db, `friend_requests/${myUid}`), async snapshot => {
+        friendRequests.innerHTML = "";
+
+        const requests = snapshot.val();
+        if (!requests) {
+          friendRequests.innerHTML = "<li>Ni prošenj.</li>";
+          return;
+        }
+
+        const users = (await get(ref(db, "users"))).val();
+        for (const fromUid in requests) {
+          const username = users[fromUid]?.username || fromUid;
+          const li = document.createElement("li");
+          li.innerHTML = `<span>${username}</span>`;
+
+          const acceptBtn = document.createElement("button");
+          acceptBtn.classList.add("btn");
+          acceptBtn.textContent = "✔ Sprejmi";
+          acceptBtn.onclick = () => acceptRequest(fromUid);
+
+          const rejectBtn = document.createElement("button");
+          rejectBtn.classList.add("btn", "red");
+          rejectBtn.textContent = "✖ Zavrni";
+          rejectBtn.onclick = () => rejectRequest(fromUid);
+
+          li.appendChild(acceptBtn);
+          li.appendChild(rejectBtn);
+          friendRequests.appendChild(li);
+        }
+      });
+    }
+
+    async function acceptRequest(fromUid) {
+      const myUid = currentUser.uid;
+      const updates = {
+        [`friends/${myUid}/${fromUid}`]: true,
+        [`friends/${fromUid}/${myUid}`]: true,
+        [`friend_requests/${myUid}/${fromUid}`]: null
+      };
+      await update(ref(db), updates);
+      alert("✅ Prošnja potrjena");
+    }
+
+    async function rejectRequest(fromUid) {
+      const myUid = currentUser.uid;
+      await remove(ref(db, `friend_requests/${myUid}/${fromUid}`));
+      alert("❌ Prošnja zavrnjena");
+    }
+
+    function loadFriends() {
+      const myUid = currentUser.uid;
+      onValue(ref(db, `friends/${myUid}`), async snapshot => {
+        friendList.innerHTML = "";
+
+        const data = snapshot.val();
+        if (!data) {
+          friendList.innerHTML = "<li>Ni prijateljev.</li>";
+          return;
+        }
+
+        const allUsers = (await get(ref(db, "users"))).val();
+        for (const uid in data) {
+          const name = allUsers[uid]?.username || uid;
+          const li = document.createElement("li");
+          li.innerHTML = `<span>${name}</span>`;
+
+          const removeBtn = document.createElement("button");
+          removeBtn.classList.add("btn", "red");
+          removeBtn.textContent = "🗑 Odstrani";
+          removeBtn.onclick = () => removeFriend(uid, name);
+
+          li.appendChild(removeBtn);
+          friendList.appendChild(li);
+        }
+      });
+    }
+
+    async function removeFriend(friendUid, username) {
+      const myUid = currentUser.uid;
+      const confirmation = confirm(`Ali res želiš odstraniti prijatelja "${username}"?`);
+      if (!confirmation) return;
+
+      const updates = {
+        [`friends/${myUid}/${friendUid}`]: null,
+        [`friends/${friendUid}/${myUid}`]: null
+      };
+      await update(ref(db), updates);
+      alert(`🗑 Uporabnik "${username}" odstranjen iz prijateljev.`);
+    }
+  </script>
+</body>
+</html>

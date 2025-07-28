@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registracija - Firebase Chat</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="loading">
+  <div class="wrapper">
+    <div id="register-container" class="card">
+      <h2>Registracija</h2>
+      <input type="text" id="register-username" placeholder="Uporabniško ime" autocomplete="username" />
+      <input type="email" id="register-email" placeholder="Email" autocomplete="email" />
+      <input type="password" id="register-password" placeholder="Geslo (vsaj 6 znakov)" autocomplete="new-password" />
+      <p id="register-error" class="error-msg"></p>
+      <button onclick="register()">Registracija</button>
+      <a href="index.html" class="link-btn">Že imaš račun? Prijavi se tukaj</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      updateProfile,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      set
+    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDi0cyCHR3zKZVRvcr9HAysD2hMxrveaPE",
+      authDomain: "chat-server-6a818.firebaseapp.com",
+      projectId: "chat-server-6a818",
+      storageBucket: "chat-server-6a818.appspot.com",
+      messagingSenderId: "26169957151",
+      appId: "1:26169957151:web:78adf687a38d764732ae2a",
+      measurementId: "G-6VHMVY0WDS",
+      databaseURL: "https://chat-server-6a818-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const registerError = document.getElementById("register-error");
+
+    window.register = async function () {
+      const email = document.getElementById("register-email").value.trim();
+      const password = document.getElementById("register-password").value.trim();
+      const username = document.getElementById("register-username").value.trim();
+      registerError.textContent = "";
+
+      if (!email || !password || password.length < 6 || !username) {
+        registerError.textContent = "Prosimo, vnesi email, geslo (vsaj 6 znakov) in uporabniško ime.";
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Nastavi prikazno ime
+        await updateProfile(user, { displayName: username });
+
+        // Shrani uporabniško ime v Realtime Database
+        await set(ref(db, "users/" + user.uid), {
+          username: username
+        });
+
+        // Preusmeri na klepet
+        window.location.href = "index.html";
+      } catch (err) {
+        registerError.textContent = err.message;
+      }
+    };
+
+    // ✅ VARNOST: če je uporabnik že prijavljen, a še ni zapisan v bazi, ga dodaj
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        const userRef = ref(db, "users/" + user.uid);
+        set(userRef, {
+          username: user.displayName || "anon"
+        });
+      }
+    });
+
+    document.body.classList.remove("loading");
+  </script>
+</body>
+</html>
