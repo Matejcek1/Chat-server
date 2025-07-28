@@ -7,145 +7,169 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     * {
-      box-sizing: border-box;
-    }
+  box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(to right, #e3f2fd, #fce4ec);
-      color: #333;
-    }
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+  color: #333;
+}
 
-    .wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 3rem 1rem;
-      min-height: 100vh;
-    }
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 1rem;
+  min-height: 100vh;
+}
 
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-      max-width: 700px;
-      width: 100%;
-      animation: fadeIn 0.4s ease-in-out;
-    }
+.card {
+  background: white;
+  padding: 2rem 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  max-width: 780px;
+  width: 100%;
+  animation: fadeIn 0.4s ease-in-out;
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    h2, h3 {
-      margin-top: 1.5rem;
-      border-bottom: 2px solid #e0e0e0;
-      padding-bottom: 0.5rem;
-      color: #1e88e5;
-    }
+h2, h3 {
+  margin-top: 1.8rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e0e0e0;
+  color: #1565c0;
+}
 
-    input[type="text"] {
-      width: 100%;
-      padding: 0.8rem 1rem;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      margin-top: 1rem;
-      font-size: 1rem;
-    }
+input[type="text"] {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  margin-top: 1rem;
+  transition: border 0.2s ease-in-out;
+}
 
-    .btn {
-      margin-top: 1rem;
-      display: inline-block;
-      padding: 0.6rem 1rem;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 10px;
-      background-color: #1e88e5;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
-    }
+input[type="text"]:focus {
+  outline: none;
+  border-color: #42a5f5;
+}
 
-    .btn:hover {
-      background-color: #1565c0;
-    }
+.btn {
+  margin-top: 0.6rem;
+  display: inline-block;
+  padding: 0.65rem 1.3rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background-color: #1e88e5;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.15s ease;
+}
 
-    .btn.red {
-      background-color: #e53935;
-    }
+.btn:hover {
+  background-color: #1565c0;
+  transform: scale(1.02);
+}
 
-    .btn.red:hover {
-      background-color: #c62828;
-    }
+.btn.red {
+  background-color: #e53935;
+}
 
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 1rem;
-    }
+.btn.red:hover {
+  background-color: #c62828;
+}
 
-    li {
-      background-color: #f5f5f5;
-      border-radius: 10px;
-      padding: 0.8rem 1rem;
-      margin-bottom: 0.8rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
+ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
 
-    li span {
-      font-weight: 500;
-      font-size: 1rem;
-      flex: 1;
-    }
+li {
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  padding: 1rem 1rem 0.9rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
 
-    .info {
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #777;
-    }
+li span {
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
 
-    .link-btn {
-      margin-top: 2rem;
-      display: block;
-      text-align: center;
-      background-color: #555;
-      color: white;
-      padding: 0.7rem;
-      border-radius: 10px;
-      font-weight: 600;
-      text-decoration: none;
-    }
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
 
-    .link-btn:hover {
-      background-color: #333;
-    }
+.info {
+  margin-top: 0.8rem;
+  font-size: 0.95rem;
+  color: #666;
+}
 
-    @media (max-width: 600px) {
-      .card {
-        padding: 1.5rem;
-      }
+.link-btn {
+  margin-top: 2rem;
+  display: block;
+  text-align: center;
+  background-color: #424242;
+  color: white;
+  padding: 0.8rem;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out;
+}
 
-      li {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+.link-btn:hover {
+  background-color: #212121;
+}
 
-      li button {
-        width: 100%;
-      }
+.message-input {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
 
-      .btn {
-        width: 100%;
-      }
-    }
+.message-input input {
+  flex: 1;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  transition: border 0.2s;
+}
+
+.message-input input:focus {
+  border-color: #64b5f6;
+  outline: none;
+}
+
+.message-input button {
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
   </style>
 </head>
 <body class="loading">
@@ -180,7 +204,8 @@
       get,
       onValue,
       remove,
-      update
+      update,
+      push
     } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -210,10 +235,8 @@
         location.href = "index.html";
         return;
       }
-
       currentUser = user;
       document.body.classList.remove("loading");
-
       loadFriendRequests();
       loadFriends();
     });
@@ -248,14 +271,13 @@
           }
         }
 
+        searchInfo.textContent = count > 0 ? `Najdeno: ${count}` : "Uporabnik ne obstaja";
         if (count === 0) {
           searchResults.innerHTML = "<li>🔍 Ni najdenih uporabnikov.</li>";
         }
-
-        searchInfo.textContent = `Najdeno: ${count}`;
       } catch (error) {
-        searchInfo.textContent = "❌ Napaka pri iskanju uporabnikov.";
         console.error(error);
+        searchInfo.textContent = "❌ Napaka pri iskanju.";
       }
     };
 
@@ -269,18 +291,18 @@
       const myUid = currentUser.uid;
       onValue(ref(db, `friend_requests/${myUid}`), async snapshot => {
         friendRequests.innerHTML = "";
-
         const requests = snapshot.val();
         if (!requests) {
           friendRequests.innerHTML = "<li>Ni prošenj.</li>";
           return;
         }
-
         const users = (await get(ref(db, "users"))).val();
         for (const fromUid in requests) {
           const username = users[fromUid]?.username || fromUid;
           const li = document.createElement("li");
           li.innerHTML = `<span>${username}</span>`;
+          const actions = document.createElement("div");
+          actions.classList.add("action-row");
 
           const acceptBtn = document.createElement("button");
           acceptBtn.classList.add("btn");
@@ -292,8 +314,9 @@
           rejectBtn.textContent = "✖ Zavrni";
           rejectBtn.onclick = () => rejectRequest(fromUid);
 
-          li.appendChild(acceptBtn);
-          li.appendChild(rejectBtn);
+          actions.appendChild(acceptBtn);
+          actions.appendChild(rejectBtn);
+          li.appendChild(actions);
           friendRequests.appendChild(li);
         }
       });
@@ -320,25 +343,39 @@
       const myUid = currentUser.uid;
       onValue(ref(db, `friends/${myUid}`), async snapshot => {
         friendList.innerHTML = "";
-
         const data = snapshot.val();
         if (!data) {
           friendList.innerHTML = "<li>Ni prijateljev.</li>";
           return;
         }
-
         const allUsers = (await get(ref(db, "users"))).val();
         for (const uid in data) {
           const name = allUsers[uid]?.username || uid;
           const li = document.createElement("li");
           li.innerHTML = `<span>${name}</span>`;
 
+          const messageContainer = document.createElement("div");
+          messageContainer.classList.add("message-input");
+          const msgInput = document.createElement("input");
+          msgInput.placeholder = "💬 Sporočilo...";
+          const sendBtn = document.createElement("button");
+          sendBtn.classList.add("btn");
+          sendBtn.textContent = "Pošlji";
+          sendBtn.onclick = () => sendMessage(uid, msgInput.value);
+          messageContainer.appendChild(msgInput);
+          messageContainer.appendChild(sendBtn);
+
           const removeBtn = document.createElement("button");
           removeBtn.classList.add("btn", "red");
           removeBtn.textContent = "🗑 Odstrani";
           removeBtn.onclick = () => removeFriend(uid, name);
 
-          li.appendChild(removeBtn);
+          const actions = document.createElement("div");
+          actions.classList.add("action-row");
+          actions.appendChild(messageContainer);
+          actions.appendChild(removeBtn);
+
+          li.appendChild(actions);
           friendList.appendChild(li);
         }
       });
@@ -348,13 +385,22 @@
       const myUid = currentUser.uid;
       const confirmation = confirm(`Ali res želiš odstraniti prijatelja "${username}"?`);
       if (!confirmation) return;
-
       const updates = {
         [`friends/${myUid}/${friendUid}`]: null,
         [`friends/${friendUid}/${myUid}`]: null
       };
       await update(ref(db), updates);
       alert(`🗑 Uporabnik "${username}" odstranjen iz prijateljev.`);
+    }
+
+    async function sendMessage(toUid, message) {
+      if (!message.trim()) return;
+      const msgRef = ref(db, `messages/${currentUser.uid}/${toUid}`);
+      await push(msgRef, {
+        text: message,
+        timestamp: Date.now()
+      });
+      alert("💬 Sporočilo poslano!");
     }
   </script>
 </body>
