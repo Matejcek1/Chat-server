@@ -6,170 +6,183 @@
   <title>Prijatelji</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --primary: #ff00cc;
+      --primary-dark: #cc00aa;
+      --danger: #ff1744;
+      --danger-dark: #c4001d;
+      --background: #1a0033;
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --text-color: #f3e5f5;
+      --muted: #a18abf;
+      --border: rgba(255, 255, 255, 0.2);
+      --shadow: rgba(255, 0, 255, 0.2);
+    }
+
     * {
-  box-sizing: border-box;
-}
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #e3f2fd, #fce4ec);
-  color: #333;
-}
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #2c003e, #110f4c, #1e003e);
+      color: var(--text-color);
+      min-height: 100vh;
+    }
 
-.wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 3rem 1rem;
-  min-height: 100vh;
-}
+    .wrapper {
+      display: flex;
+      justify-content: center;
+      padding: 4rem 1rem;
+    }
 
-.card {
-  background: white;
-  padding: 2rem 2.5rem;
-  border-radius: 20px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-  max-width: 780px;
-  width: 100%;
-  animation: fadeIn 0.4s ease-in-out;
-}
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      padding: 2.5rem 3rem;
+      border-radius: 24px;
+      box-shadow: 0 0 20px var(--shadow);
+      max-width: 800px;
+      width: 100%;
+      animation: fadeIn 0.4s ease-in-out;
+    }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-h2, h3 {
-  margin-top: 1.8rem;
-  margin-bottom: 0.8rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e0e0e0;
-  color: #1565c0;
-}
+    h2, h3 {
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+      color: var(--primary);
+    }
 
-input[type="text"] {
-  width: 100%;
-  padding: 0.9rem 1rem;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  margin-top: 1rem;
-  transition: border 0.2s ease-in-out;
-}
+    input[type="text"] {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid #444;
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
 
-input[type="text"]:focus {
-  outline: none;
-  border-color: #42a5f5;
-}
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
 
-.btn {
-  margin-top: 0.6rem;
-  display: inline-block;
-  padding: 0.65rem 1.3rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  background-color: #1e88e5;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out, transform 0.15s ease;
-}
+    .btn {
+      display: inline-block;
+      margin-top: 0.6rem;
+      padding: 0.65rem 1.3rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      background-color: var(--primary);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out, transform 0.15s ease;
+    }
 
-.btn:hover {
-  background-color: #1565c0;
-  transform: scale(1.02);
-}
+    .btn:hover {
+      background-color: var(--primary-dark);
+      transform: scale(1.03);
+    }
 
-.btn.red {
-  background-color: #e53935;
-}
+    .btn.red {
+      background-color: var(--danger);
+    }
 
-.btn.red:hover {
-  background-color: #c62828;
-}
+    .btn.red:hover {
+      background-color: var(--danger-dark);
+    }
 
-ul {
-  list-style: none;
-  padding: 0;
-  margin-top: 1rem;
-}
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 1.2rem;
+    }
 
-li {
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  padding: 1rem 1rem 0.9rem;
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
+    li {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.2rem;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
 
-li span {
-  font-weight: 600;
-  font-size: 1.05rem;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
+    li span {
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: block;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+    }
 
-.action-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 0.5rem;
-}
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 0.6rem;
+    }
 
-.info {
-  margin-top: 0.8rem;
-  font-size: 0.95rem;
-  color: #666;
-}
+    .info {
+      margin-top: 0.8rem;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
 
-.link-btn {
-  margin-top: 2rem;
-  display: block;
-  text-align: center;
-  background-color: #424242;
-  color: white;
-  padding: 0.8rem;
-  border-radius: 12px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background-color 0.2s ease-in-out;
-}
+    .link-btn {
+      margin-top: 2.5rem;
+      display: block;
+      text-align: center;
+      background-color: #424242;
+      color: white;
+      padding: 0.9rem;
+      border-radius: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
 
-.link-btn:hover {
-  background-color: #212121;
-}
+    .link-btn:hover {
+      background-color: #212121;
+    }
 
-.message-input {
-  margin-top: 0.5rem;
-  display: flex;
-  gap: 0.5rem;
-  width: 100%;
-}
+    .message-input {
+      display: flex;
+      flex: 1;
+      gap: 0.5rem;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
 
-.message-input input {
-  flex: 1;
-  padding: 0.55rem 0.9rem;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 0.95rem;
-  transition: border 0.2s;
-}
+    .message-input input {
+      flex: 1;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #444;
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
 
-.message-input input:focus {
-  border-color: #64b5f6;
-  outline: none;
-}
+    .message-input input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
 
-.message-input button {
-  padding: 0.55rem 1rem;
-  border-radius: 10px;
-  font-weight: 600;
-}
-
+    .message-input button {
+      padding: 0.6rem 1.1rem;
+      border-radius: 10px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body class="loading">
@@ -193,20 +206,8 @@ li span {
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-    import {
-      getDatabase,
-      ref,
-      set,
-      get,
-      onValue,
-      remove,
-      update,
-      push
-    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, onValue, remove, update, push } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDi0cyCHR3zKZVRvcr9HAysD2hMxrveaPE",
