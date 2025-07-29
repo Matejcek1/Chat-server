@@ -16,8 +16,11 @@ import {
   off,
   remove
 } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-analytics.js";
 
+// 🔐 imgbb API ključ
+const imgbbApiKey = "de307ee4497c9bbf8fbd4baf653662fa";
+
+// 🔧 Firebase konfiguracija
 const firebaseConfig = {
   apiKey: "AIzaSyDi0cyCHR3zKZVRvcr9HAysD2hMxrveaPE",
   authDomain: "chat-server-6a818.firebaseapp.com",
@@ -32,8 +35,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-const analytics = getAnalytics(app);
 
+// 📦 DOM elementi
 const loginContainer = document.getElementById("login-container");
 const registerContainer = document.getElementById("register-container");
 const chatContainer = document.getElementById("chat-container");
@@ -41,8 +44,9 @@ const chatBox = document.getElementById("chat-box");
 const loginError = document.getElementById("login-error");
 const registerError = document.getElementById("register-error");
 const messageInput = document.getElementById("message");
+const imageInput = document.getElementById("image-upload");
 
-// Prikaže register form
+// 🧑‍💻 Preklop prijava/registracija
 window.showRegister = function () {
   loginContainer.classList.add("hidden");
   registerContainer.classList.remove("hidden");
@@ -51,7 +55,6 @@ window.showRegister = function () {
   registerError.textContent = "";
 };
 
-// Prikaže login form
 window.showLogin = function () {
   registerContainer.classList.add("hidden");
   loginContainer.classList.remove("hidden");
@@ -60,7 +63,7 @@ window.showLogin = function () {
   registerError.textContent = "";
 };
 
-// Prijava uporabnika
+// 🔐 Prijava
 window.login = function () {
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value.trim();
@@ -75,7 +78,7 @@ window.login = function () {
     .catch(err => loginError.textContent = err.message);
 };
 
-// ✅ Registracija uporabnika z zapisom v Realtime Database
+// 🆕 Registracija
 window.register = async function () {
   const email = document.getElementById("register-email").value.trim();
   const password = document.getElementById("register-password").value.trim();
@@ -83,26 +86,23 @@ window.register = async function () {
   registerError.textContent = "";
 
   if (!email || !password || password.length < 6 || !username) {
-    registerError.textContent = "Prosimo, vnesi email, geslo (vsaj 6 znakov) in uporabniško ime.";
+    registerError.textContent = "Vnesi vse podatke in vsaj 6 znakov gesla.";
     return;
   }
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName: username });
-
-    // ✅ Shrani uporabnika v bazo za iskanje/prijatelje
     await set(ref(db, "users/" + userCredential.user.uid), {
       username: username
     });
-
     registerError.textContent = "";
   } catch (err) {
     registerError.textContent = err.message;
   }
 };
 
-// Odjava z redirectom
+// 🔓 Odjava
 window.logout = function () {
   signOut(auth)
     .then(() => {
@@ -111,33 +111,63 @@ window.logout = function () {
     .catch(error => console.error("Napaka pri odjavi:", error));
 };
 
-// Pošlji sporočilo
-window.sendMessage = function () {
-  const message = messageInput.value.trim();
+// 📨 Pošiljanje sporočila (tekst + slika)
+window.sendMessage = async function () {
   const user = auth.currentUser;
-  if (!message || !user) return;
+  if (!user) return;
 
   const username = user.displayName || user.email.split("@")[0];
+  const messageText = messageInput.value.trim();
+  const imageFile = imageInput.files[0];
 
-  // Posebna ukazna za izbris
-  if (message === "/clearchat" && username.toLowerCase() === "dajvic") {
+  if (!messageText && !imageFile) return;
+
+  // Skripta za /clearchat ukaz
+  if (messageText === "/clearchat" && username.toLowerCase() === "dajvic") {
     clearChat();
     messageInput.value = "";
+    imageInput.value = "";
     return;
   }
 
-  push(ref(db, "messages"), {
+  let imageUrl = null;
+
+  if (imageFile) {
+    if (imageFile.size > 5 * 1024 * 1024) {
+      alert("⚠️ Slika je prevelika (max 5 MB).");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    try {
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await response.json();
+      imageUrl = result.data.url;
+    } catch (err) {
+      console.error("Napaka pri nalaganju slike:", err);
+      alert("❌ Slike ni bilo mogoče naložiti.");
+      return;
+    }
+  }
+
+  await push(ref(db, "messages"), {
     username,
-    message,
+    message: messageText || null,
+    imageUrl: imageUrl || null,
     timestamp: Date.now()
-  }).catch(error => {
-    console.error("Napaka pri shranjevanju sporočila:", error);
   });
 
   messageInput.value = "";
+  imageInput.value = "";
 };
 
-// Izbriše celoten chat
+// 🧹 Brisanje vseh sporočil
 window.clearChat = function () {
   const messagesRef = ref(db, "messages");
   remove(messagesRef)
@@ -152,7 +182,7 @@ window.clearChat = function () {
     .catch(console.error);
 };
 
-// Oblikovanje timestamp
+// 🕒 Format časa
 function formatTimestamp(ts) {
   const date = new Date(ts);
   const h = date.getHours().toString().padStart(2, "0");
@@ -160,19 +190,14 @@ function formatTimestamp(ts) {
   return `${h}:${m}`;
 }
 
-let unsubscribeMessages = null;
-
-// Poslušanje novih sporočil
+// 🔔 Poslušanje sporočil
 function listenForMessages() {
-  if (unsubscribeMessages) {
-    off(ref(db, "messages"));
-    unsubscribeMessages = null;
-  }
+  off(ref(db, "messages"));
   chatBox.innerHTML = "";
 
   const messagesRef = ref(db, "messages");
   onChildAdded(messagesRef, data => {
-    const { username, message, timestamp } = data.val();
+    const { username, message, timestamp, imageUrl } = data.val();
     const msgDiv = document.createElement("div");
     msgDiv.classList.add("message");
     msgDiv.style.textAlign = "left";
@@ -210,16 +235,26 @@ function listenForMessages() {
 
     msgDiv.appendChild(headerDiv);
 
-    const textDiv = document.createElement("div");
-    textDiv.textContent = message;
-    msgDiv.appendChild(textDiv);
+    if (imageUrl) {
+      const img = document.createElement("img");
+      img.src = imageUrl;
+      img.alt = "Slika";
+      img.style.maxWidth = "100%";
+      img.style.marginTop = "8px";
+      img.style.borderRadius = "10px";
+      msgDiv.appendChild(img);
+    } else if (message) {
+      const textDiv = document.createElement("div");
+      textDiv.textContent = message;
+      msgDiv.appendChild(textDiv);
+    }
 
     chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
   });
 }
 
-// Spremljanje avtentikacije
+// 🔁 Uporabnik se prijavi / odjavi
 onAuthStateChanged(auth, user => {
   document.body.classList.remove("loading");
 
@@ -235,7 +270,7 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-// Po Enter pošljemo sporočilo
+// ⌨️ Enter = pošlji
 messageInput.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
