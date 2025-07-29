@@ -45,6 +45,7 @@ const loginError = document.getElementById("login-error");
 const registerError = document.getElementById("register-error");
 const messageInput = document.getElementById("message");
 const imageInput = document.getElementById("image-upload");
+const imageUrlInput = document.getElementById("image-url"); // 📥 novo polje za URL
 
 // 🧑‍💻 Preklop prijava/registracija
 window.showRegister = function () {
@@ -119,14 +120,16 @@ window.sendMessage = async function () {
   const username = user.displayName || user.email.split("@")[0];
   const messageText = messageInput.value.trim();
   const imageFile = imageInput.files[0];
+  const imageUrlField = imageUrlInput?.value.trim();
 
-  if (!messageText && !imageFile) return;
+  if (!messageText && !imageFile && !imageUrlField) return;
 
-  // Skripta za /clearchat ukaz
+  // /clearchat ukaz
   if (messageText === "/clearchat" && username.toLowerCase() === "dajvic") {
     clearChat();
     messageInput.value = "";
     imageInput.value = "";
+    imageUrlInput.value = "";
     return;
   }
 
@@ -154,6 +157,28 @@ window.sendMessage = async function () {
       alert("❌ Slike ni bilo mogoče naložiti.");
       return;
     }
+
+  } else if (imageUrlField && isImageUrl(imageUrlField)) {
+    try {
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrlField)}`;
+      const response = await fetch(proxyUrl);
+      const blob = await response.blob();
+
+      const formData = new FormData();
+      formData.append("image", blob, "url-image.jpg");
+
+      const uploadRes = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await uploadRes.json();
+      imageUrl = result.data.url;
+    } catch (err) {
+      console.error("Napaka pri nalaganju slike z URL-ja:", err);
+      alert("❌ Slike iz URL-ja ni bilo mogoče naložiti.");
+      return;
+    }
   }
 
   await push(ref(db, "messages"), {
@@ -165,7 +190,13 @@ window.sendMessage = async function () {
 
   messageInput.value = "";
   imageInput.value = "";
+  imageUrlInput.value = "";
 };
+
+// 🧠 Preveri, če je URL slika
+function isImageUrl(url) {
+  return /\.(jpeg|jpg|png|gif|webp)$/i.test(url);
+}
 
 // 🧹 Brisanje vseh sporočil
 window.clearChat = function () {
@@ -254,7 +285,7 @@ function listenForMessages() {
   });
 }
 
-// 🔁 Uporabnik se prijavi / odjavi
+// 🔁 Prijava/odjava
 onAuthStateChanged(auth, user => {
   document.body.classList.remove("loading");
 
