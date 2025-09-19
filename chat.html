@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Firebase Chat - Discord Style</title>
+  <!-- Povezava na zunanji CSS -->
   <link rel="stylesheet" href="chat.css" />
 </head>
 <body class="loading">
   <div class="wrapper">
-
     <!-- Prijava -->
     <div id="login-container" class="card hidden">
       <h2>Prijava</h2>
@@ -66,6 +66,27 @@
   </div>
 
   <!-- JS za slike -->
-  <script src="chat.js"></script>
+  <script>
+    function openImage(src) {
+      const lightbox = document.getElementById("image-lightbox");
+      const img = document.getElementById("lightbox-img");
+      img.src = src;
+      lightbox.style.display = "flex";
+    }
+
+    function closeImage() {
+      document.getElementById("image-lightbox").style.display = "none";
+    }
+
+    function dodajSlikoVSporocilo(slikaUrl) {
+      const chatBox = document.getElementById("chat-box");
+      const el = document.createElement("div");
+      el.innerHTML = `<img src="${slikaUrl}" class="chat-image" onclick="openImage(this.src)">`;
+      chatBox.appendChild(el);
+    }
+  </script>
+
+  <!-- Glavni JS modul -->
+  <script type="module" src="chat.js"></script>
 </body>
 </html>
