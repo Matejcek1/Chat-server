@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8">
+  <title>Moj profil</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #232526, #414345, #434343, #232526, #191919);
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f3f3f3;
+    }
+    @keyframes gradientShift {
+      0% {background-position: 0% 50%;}
+      25% {background-position: 50% 100%;}
+      50% {background-position: 100% 50%;}
+      75% {background-position: 50% 0%;}
+      100% {background-position: 0% 50%;}
+    }
+    .wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 30, 40, 0.4);
+      backdrop-filter: blur(2px);
+    }
+    .card {
+      background: rgba(30, 30, 40, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+      padding: 2.5rem 2rem 2rem 2rem;
+      max-width: 400px;
+      width: 100%;
+    }
+    #profile-pic {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #666;
+      margin-bottom: 10px;
+    }
+    .upload-label {
+      background-color: #444;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 5px;
+    }
+    .upload-label:hover {
+      background-color: #555;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.7em 1em;
+      margin: 0.5em 0 1.2em 0;
+      border: none;
+      border-radius: 8px;
+      background: #23242a;
+      color: #f3f3f3;
+      font-size: 1em;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+    input[type="text"]:focus {
+      outline: 2px solid #a8c0ff;
+      background: #23243a;
+    }
+    button, .logout {
+      width: 100%;
+      padding: 0.8em;
+      background: linear-gradient(90deg, #a8c0ff 0%, #fbc2eb 100%);
+      color: #232526;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.1em;
+      cursor: pointer;
+      margin-top: 0.5em;
+      transition: background 0.2s, color 0.2s;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+    button.logout {
+      background: #232526;
+      color: #f3f3f3;
+      margin-top: 0.5em;
+      border: 1px solid #a8c0ff;
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .link-btn {
+      display: block;
+      margin-top: 1.5em;
+      color: #a8c0ff;
+      text-align: center;
+      text-decoration: none;
+      font-size: 1em;
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .link-btn:hover {
+      color: #fbc2eb;
+    }
+    h2, h3 {
+      color: #f3f3f3;
+      margin-bottom: 0.7em;
+    }
+  </style>
+</head>
+<body class="loading">
+  <div class="wrapper">
+    <div class="card">
+      <h2>Tvoj profil</h2>
+
+      <img id="profile-pic" src="default-profile.png" alt="Profilna slika">
+      <br>
+      <label class="upload-label" for="profile-upload">📸 Spremeni profilno sliko</label>
+      <input type="file" id="profile-upload" accept="image/*">
+
+      <p><strong>Uporabniško ime:</strong> <span id="display-username">...</span></p>
+      <p><strong>Email:</strong> <span id="display-email">...</span></p>
+
+      <hr style="margin: 20px 0; border-color: #444;">
+
+      <h3>✏️ Spremeni uporabniško ime</h3>
+      <input type="text" id="new-username" placeholder="Novo uporabniško ime" />
+      <button onclick="updateUsername()">Shrani novo ime</button>
+
+      <hr style="margin: 20px 0; border-color: #444;">
+
+      <button onclick="sendResetEmail()">🔒 Ponastavi geslo</button>
+      <button class="logout" onclick="logout()">🚪 Odjava</button>
+      <a class="link-btn" href="chat.html">⬅ Nazaj na klepet</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut,
+      sendPasswordResetEmail,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      update
+    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+
+    // 🔐 imgbb API ključ
+    const imgbbApiKey = "de307ee4497c9bbf8fbd4baf653662fa";
+
+    // 🔧 Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDi0cyCHR3zKZVRvcr9HAysD2hMxrveaPE",
+      authDomain: "chat-server-6a818.firebaseapp.com",
+      databaseURL: "https://chat-server-6a818-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "chat-server-6a818",
+      storageBucket: "chat-server-6a818.appspot.com",
+      messagingSenderId: "26169957151",
+      appId: "1:26169957151:web:78adf687a38d764732ae2a",
+      measurementId: "G-6VHMVY0WDS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const usernameEl = document.getElementById("display-username");
+    const emailEl = document.getElementById("display-email");
+    const newUsernameInput = document.getElementById("new-username");
+    const profilePic = document.getElementById("profile-pic");
+    const profileUpload = document.getElementById("profile-upload");
+
+    let currentUser = null;
+
+    // 🔐 Preveri prijavo
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        location.href = "index.html";
+        return;
+      }
+
+      currentUser = user;
+      emailEl.textContent = user.email;
+
+      // Naloži podatke
+      try {
+        const snapshot = await get(ref(db, "users/" + user.uid));
+        const data = snapshot.val();
+        usernameEl.textContent = data?.username || user.displayName || "neznano";
+        profilePic.src = data?.profilePic || user.photoURL || "default-profile.png";
+      } catch (err) {
+        console.error("Napaka pri nalaganju podatkov:", err);
+        usernameEl.textContent = "napaka";
+      }
+
+      document.body.classList.remove("loading");
+    });
+
+    // 📧 Pošlji email za ponastavitev gesla
+    window.sendResetEmail = function () {
+      if (!currentUser || !currentUser.email) return alert("Uporabnik ni prijavljen.");
+      sendPasswordResetEmail(auth, currentUser.email)
+        .then(() => alert("📨 Email za ponastavitev gesla poslan na: " + currentUser.email))
+        .catch(err => alert("❌ Napaka: " + err.message));
+    };
+
+    // ✏️ Spremeni uporabniško ime
+    window.updateUsername = async function () {
+      const newName = newUsernameInput.value.trim();
+      if (!newName || newName.length < 2) {
+        alert("⚠️ Vnesi veljavno uporabniško ime.");
+        return;
+      }
+
+      try {
+        await updateProfile(currentUser, { displayName: newName });
+        await update(ref(db, "users/" + currentUser.uid), { username: newName });
+
+        alert("✅ Uporabniško ime posodobljeno!");
+        usernameEl.textContent = newName;
+        newUsernameInput.value = "";
+      } catch (err) {
+        alert("❌ Napaka pri posodobitvi: " + err.message);
+      }
+    };
+
+    // 📸 Spremeni profilno sliko
+    profileUpload.addEventListener("change", async () => {
+      const file = profileUpload.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert("⚠️ Slika je prevelika (max 5 MB).");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await res.json();
+        const imageUrl = result.data.url;
+
+        // Posodobi v auth in bazi
+        await updateProfile(currentUser, { photoURL: imageUrl });
+        await update(ref(db, "users/" + currentUser.uid), { profilePic: imageUrl });
+
+        profilePic.src = imageUrl;
+        alert("✅ Profilna slika posodobljena!");
+      } catch (err) {
+        console.error("Napaka pri nalaganju slike:", err);
+        alert("❌ Napaka pri nalaganju slike.");
+      }
+    });
+
+    // 🚪 Odjava
+    window.logout = function () {
+      signOut(auth).then(() => location.href = "index.html");
+    };
+  </script>
+</body>
+</html>

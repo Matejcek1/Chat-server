@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Firebase Chat - Discord Style</title>
+  <!-- Povezava na zunanji CSS -->
+  <link rel="stylesheet" href="chat.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #232526, #414345, #434343, #232526, #191919);
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f3f3f3;
+    }
+    @keyframes gradientShift {
+      0% {background-position: 0% 50%;}
+      25% {background-position: 50% 100%;}
+      50% {background-position: 100% 50%;}
+      75% {background-position: 50% 0%;}
+      100% {background-position: 0% 50%;}
+    }
+    .wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 30, 40, 0.4);
+      backdrop-filter: blur(2px);
+    }
+    .card {
+      background: rgba(30, 30, 40, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+      padding: 2.5rem 2rem 2rem 2rem;
+      max-width: 420px;
+      width: 100%;
+    }
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 0.7em 1em;
+      margin: 0.5em 0 1.2em 0;
+      border: none;
+      border-radius: 8px;
+      background: #23242a;
+      color: #f3f3f3;
+      font-size: 1em;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: 2px solid #a8c0ff;
+      background: #23243a;
+    }
+    label {
+      font-size: 1em;
+      color: #bfc9d1;
+      margin-bottom: 0.2em;
+      display: block;
+    }
+    button, .link-btn {
+      width: 100%;
+      padding: 0.8em;
+      background: linear-gradient(90deg, #a8c0ff 0%, #fbc2eb 100%);
+      color: #232526;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.1em;
+      cursor: pointer;
+      margin-top: 0.5em;
+      transition: background 0.2s, color 0.2s;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+    button.logout {
+      background: #232526;
+      color: #f3f3f3;
+      margin-top: 0.5em;
+      border: 1px solid #a8c0ff;
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .link-btn {
+      background: none;
+      color: #a8c0ff;
+      font-size: 1em;
+      margin-top: 1.5em;
+      border: none;
+      font-weight: 400;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .link-btn:hover {
+      color: #fbc2eb;
+      background: none;
+    }
+    .error-msg {
+      color: #ffb3b3;
+      min-height: 1.5em;
+      margin: 0.5em 0 0.5em 0;
+      font-size: 0.98em;
+    }
+    #image-lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      align-items: center;
+      justify-content: center;
+    }
+    #image-lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.7);
+    }
+    .custom-upload-btn {
+      display: inline-block;
+      margin: 0.5em 0 1em 0;
+      padding: 0.5em 1em;
+      background: #232526;
+      color: #a8c0ff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      border: 1px solid #a8c0ff;
+      transition: background 0.2s, color 0.2s;
+    }
+    .custom-upload-btn:hover {
+      background: #a8c0ff;
+      color: #232526;
+    }
+    textarea {
+      width: 100%;
+      padding: 0.7em 1em;
+      margin: 0.5em 0 1.2em 0;
+      border: none;
+      border-radius: 8px;
+      background: #23242a;
+      color: #f3f3f3;
+      font-size: 1em;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      resize: vertical;
+    }
+    nav {
+      margin-bottom: 1.2em;
+    }
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-links a {
+      color: #a8c0ff;
+      margin-left: 1.2em;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: #fbc2eb;
+    }
+    .chat-image {
+      max-width: 180px;
+      max-height: 180px;
+      border-radius: 8px;
+      margin: 0.5em 0;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      transition: transform 0.15s;
+    }
+    .chat-image:hover {
+      transform: scale(1.04);
+    }
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="loading">
+  <div class="wrapper">
+    <!-- Prijava -->
+    <div id="login-container" class="card hidden">
+      <h2>Prijava</h2>
+      <input type="email" id="login-email" placeholder="Email" autocomplete="username" />
+      <input type="password" id="login-password" placeholder="Geslo" autocomplete="current-password" />
+      <p id="login-error" class="error-msg"></p>
+      <button onclick="login()">Prijava</button>
+      <button class="link-btn" onclick="showRegister()">Nisi registriran? Registriraj se tukaj</button>
+    </div>
+
+    <!-- Registracija -->
+    <div id="register-container" class="card hidden">
+      <h2>Registracija</h2>
+      <input type="text" id="register-username" placeholder="Uporabniško ime" autocomplete="username" />
+      <input type="email" id="register-email" placeholder="Email" autocomplete="email" />
+      <input type="password" id="register-password" placeholder="Geslo (vsaj 6 znakov)" autocomplete="new-password" />
+      <p id="register-error" class="error-msg"></p>
+      <button onclick="register()">Registracija</button>
+      <button class="link-btn" onclick="showLogin()">Že imaš račun? Prijavi se tukaj</button>
+    </div>
+
+    <!-- Chat -->
+    <div id="chat-container" class="hidden card">
+      <!-- Navigacija -->
+      <nav>
+        <div class="nav-inner">
+          <span style="font-size: 1.1rem; font-weight: bold;">Klepetalnica</span>
+          <div class="nav-links">
+            <a href="prijatelj.html">👥 Prijatelji</a>
+            <a href="profil.html">👤 Profil</a>
+            <a href="#" onclick="logout()" style="font-weight: bold;">Odjava</a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Sporočila -->
+      <div id="chat-box" aria-live="polite" aria-relevant="additions"></div>
+
+      <!-- Naloži sliko -->
+      <label for="image-upload" class="custom-upload-btn">📷 Naloži sliko</label>
+      <input type="file" id="image-upload" accept="image/*" style="display: none;" />
+
+      <!-- Vnosno polje -->
+      <textarea id="message" placeholder="Napiši sporočilo... (Enter = pošlji, Shift+Enter = nova vrstica)" rows="2"></textarea>
+
+      <!-- Gumbi -->
+      <button onclick="sendMessage()">Pošlji</button>
+      <button class="logout" onclick="logout()">Odjava</button>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="image-lightbox" onclick="closeImage()">
+    <img id="lightbox-img" src="" alt="Povečana slika" />
+  </div>
+
+  <!-- JS za slike -->
+  <script>
+    function openImage(src) {
+      const lightbox = document.getElementById("image-lightbox");
+      const img = document.getElementById("lightbox-img");
+      img.src = src;
+      lightbox.style.display = "flex";
+    }
+
+    function closeImage() {
+      document.getElementById("image-lightbox").style.display = "none";
+    }
+
+    function dodajSlikoVSporocilo(slikaUrl) {
+      const chatBox = document.getElementById("chat-box");
+      const el = document.createElement("div");
+      el.innerHTML = `<img src="${slikaUrl}" class="chat-image" onclick="openImage(this.src)">`;
+      chatBox.appendChild(el);
+    }
+  </script>
+
+  <!-- Glavni JS modul -->
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="auth.js"></script>
+  <script type="module" src="chat.js"></script>
+</body>
+</html>
