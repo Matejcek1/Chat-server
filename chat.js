@@ -45,7 +45,8 @@ async function sendSystemMessage(msg) {
 const ranks = {
   "6cj4FBOSY5dG3xq9LPw73JigLsj2": { label: "⭐ Owner", color: "gold" },
   "UID_ADMIN": { label: "🛡️ Admin", color: "red" },
-  "UID_MOD": { label: "🔧 Mod", color: "blue" }
+  "UID_MOD": { label: "🔧 Mod", color: "blue" },
+  "0op1pRGTMMS43Y0C3oPE9FSYbWj2": { label: "💙 Warden 💙", color: "darkblue" },
 };
 
 // ========================
